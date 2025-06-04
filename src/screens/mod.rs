@@ -4,6 +4,8 @@ mod gameplay;
 mod loading;
 mod splash;
 mod title;
+mod workshop;
+mod launchpad;
 
 use bevy::prelude::*;
 
@@ -15,6 +17,8 @@ pub(super) fn plugin(app: &mut App) {
         loading::plugin,
         splash::plugin,
         title::plugin,
+        workshop::plugin,
+        launchpad::plugin,
     ));
 }
 
@@ -27,4 +31,6 @@ pub enum Screen {
     Title,
     Loading,
     Gameplay,
+    Workshop,
+    Launchpad
 }
