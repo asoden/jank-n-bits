@@ -1,11 +1,11 @@
 //! The game's main screen states and transitions between them.
 
 mod gameplay;
+mod launchpad;
 mod loading;
 mod splash;
 mod title;
 mod workshop;
-mod launchpad;
 
 use bevy::prelude::*;
 
@@ -32,5 +32,5 @@ pub enum Screen {
     Loading,
     Gameplay,
     Workshop,
-    Launchpad
+    Launchpad,
 }

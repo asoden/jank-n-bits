@@ -2,7 +2,7 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
-use crate::{menus::Menu, screens::Screen, theme::widget, Pause};
+use crate::{Pause, menus::Menu, screens::Screen, theme::widget};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Workshop), spawn_workshop);
@@ -30,22 +30,15 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_workshop(
-    mut commands: Commands,
-) {
+fn spawn_workshop(mut commands: Commands) {
     commands.spawn((
         widget::ui_root("Workshop Menu"),
         StateScoped(Screen::Workshop),
-        children![
-            widget::button("Launch bits!", launch_bits),
-        ],
+        children![widget::button("Launch bits!", launch_bits),],
     ));
 }
 
-fn launch_bits(
-    _: Trigger<Pointer<Click>>,
-    mut next_screen: ResMut<NextState<Screen>>,
-) {
+fn launch_bits(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
     next_screen.set(Screen::Launchpad);
 }
 
