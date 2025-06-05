@@ -12,7 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*, render::camera::ScalingMode};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -98,5 +98,16 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    // Spawn a 2D camera
+    let mut proj = OrthographicProjection::default_2d();
+    proj.scale = 1.0;
+    proj.scaling_mode = ScalingMode::FixedVertical {
+        viewport_height: 1.,
+    };
+
+    commands.spawn((
+        Name::new("Camera"),
+        Transform::from_translation(Vec3::new(0., 20., 50.)),
+        Camera3d::default(),
+    ));
 }
