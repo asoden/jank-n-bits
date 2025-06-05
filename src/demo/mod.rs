@@ -6,10 +6,10 @@
 use bevy::prelude::*;
 
 mod animation;
+mod boomies;
 pub mod level;
 mod movement;
 pub mod player;
-mod boomies;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((

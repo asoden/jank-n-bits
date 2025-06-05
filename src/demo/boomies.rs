@@ -1,23 +1,16 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_hanabi::prelude::*;
 
-use crate::{
-    AppSystems, PausableSystems,
-    demo::{player::PlayerAssets},
-};
+use crate::{AppSystems, PausableSystems, demo::player::PlayerAssets};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(HanabiPlugin);
     app.add_systems(
         Update,
-        (
-            (
-                setup,
-            )
-                .chain()
-                .run_if(resource_exists::<PlayerAssets>)
-                .in_set(AppSystems::Update),
-        )
+        ((setup,)
+            .chain()
+            .run_if(resource_exists::<PlayerAssets>)
+            .in_set(AppSystems::Update),)
             .in_set(PausableSystems),
     );
 }
