@@ -17,7 +17,7 @@ pub(super) fn plugin(app: &mut App) {
 
 fn setup(
     mut cmd: Commands,
-    mut materials: ResMut<Assets<SpriteParticle2dMaterial>>,
+    // mut materials: ResMut<Assets<SpriteParticle2dMaterial>>,
     server: Res<AssetServer>,
 ) {
     // // minimal setup
@@ -51,17 +51,4 @@ fn setup(
     //     ParticleSpawner(sprite_material),
     //     ParticleEffectHandle(server.load("shaders/test_firework.particle.ron")),
     // ));
-}
-
-pub(crate) fn remove_finished_spawner(
-    mut cmd: Commands,
-    spawner: Query<(Entity, &ParticleStore, &ParticleSpawnerState, &OneShot)>,
-) {
-    spawner
-        .iter()
-        .for_each(|(entity, store, controller, one_shot)| {
-            if matches!(one_shot, OneShot::Despawn) && !controller.active && store.len() == 0 {
-                cmd.entity(entity).despawn();
-            }
-        })
 }
