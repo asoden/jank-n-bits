@@ -105,9 +105,5 @@ fn spawn_camera(mut commands: Commands) {
         viewport_height: 1.,
     };
 
-    commands.spawn((
-        Name::new("Camera"),
-        Transform::from_translation(Vec3::new(0., 20., 50.)),
-        Camera3d::default(),
-    ));
+    commands.spawn((Name::new("Camera"), Camera2d));
 }
