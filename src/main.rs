@@ -105,5 +105,13 @@ fn spawn_camera(mut commands: Commands) {
         viewport_height: 1.,
     };
 
-    commands.spawn((Name::new("Camera"), Camera2d));
+    // commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Camera2d,
+        Camera {
+            hdr: true,
+            clear_color: ClearColorConfig::Custom(Color::BLACK),
+            ..default()
+        },
+    ));
 }
