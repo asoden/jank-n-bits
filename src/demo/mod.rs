@@ -7,6 +7,7 @@ use bevy::prelude::*;
 
 mod animation;
 mod fireworks;
+mod launcher;
 pub mod level;
 mod movement;
 pub mod player;
@@ -18,5 +19,6 @@ pub(super) fn plugin(app: &mut App) {
         movement::plugin,
         player::plugin,
         fireworks::plugin,
+        launcher::plugin,
     ));
 }
