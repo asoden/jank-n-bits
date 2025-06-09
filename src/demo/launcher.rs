@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::screens::Screen;
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_event::<ProjectileExplosionEvent>();
     app.add_systems(OnEnter(Screen::Launchpad), setup);
     app.add_systems(OnExit(Screen::Launchpad), despawn_launcher);
     app.add_systems(
@@ -21,6 +22,11 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
+#[derive(Event)]
+pub struct ProjectileExplosionEvent {
+    pub position: Vec3,
+}
+
 #[derive(Component)]
 struct Launcher {
     rotation_speed: f32,
@@ -31,6 +37,7 @@ struct Launcher {
 #[derive(Component)]
 struct Projectile {
     velocity: Vec2,
+    distance: f32,
 }
 
 fn setup(mut commands: Commands) {
@@ -109,29 +116,42 @@ fn launcher_shooting(
                 Transform::from_translation(spawn_position),
                 Projectile {
                     velocity: direction_2d * launcher.projectile_speed,
+                    distance: 0.,
                 },
             ));
         }
     }
 }
 
-fn projectile_movement(time: Res<Time>, mut query: Query<(&mut Transform, &Projectile)>) {
-    for (mut transform, projectile) in query.iter_mut() {
-        transform.translation.x += projectile.velocity.x * time.delta_secs();
-        transform.translation.y += projectile.velocity.y * time.delta_secs();
+fn projectile_movement(time: Res<Time>, mut query: Query<(&mut Transform, &mut Projectile)>) {
+    for (mut transform, mut projectile) in query.iter_mut() {
+        let movement = Vec2::new(
+            projectile.velocity.x * time.delta_secs(),
+            projectile.velocity.y * time.delta_secs(),
+        );
+
+        transform.translation.x += movement.x;
+        transform.translation.y += movement.y;
+
+        projectile.distance += movement.length();
     }
 }
 
 fn cleanup_projectiles(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<Projectile>>,
+    mut explosion_events: EventWriter<ProjectileExplosionEvent>,
+    query: Query<(Entity, &Transform, &Projectile)>,
 ) {
-    for (entity, transform) in query.iter() {
-        if transform.translation.y > 600.0
-            || transform.translation.y < -600.0
-            || transform.translation.x > 800.0
-            || transform.translation.x < -800.0
-        {
+    for (entity, transform, projectile) in query.iter() {
+        let should_despawn = projectile.distance > 700.0;
+        let should_explode = projectile.distance > 500.0;
+
+        if should_despawn || should_explode {
+            if should_explode {
+                explosion_events.write(ProjectileExplosionEvent {
+                    position: transform.translation,
+                });
+            }
             commands.entity(entity).despawn();
         }
     }
