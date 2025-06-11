@@ -1,24 +1,28 @@
-use bevy::{input::common_conditions::input_just_pressed, prelude::*};
+use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
-use crate::screens::Screen;
+use crate::demo::launcher::ProjectileExplosionEvent;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(EnokiPlugin);
-    // app.add_systems(OnExit(Screen::Launchpad), despawn_resources);
-    app.add_systems(
-        Update,
-        (
-            (setup.run_if(in_state(Screen::Launchpad).and(input_just_pressed(KeyCode::Space))))
-                .chain(),
-        ),
-    );
+    app.add_systems(Update, handle_explosions);
 }
 
-fn setup(
-    mut cmd: Commands,
-    // mut materials: ResMut<Assets<SpriteParticle2dMaterial>>,
+fn handle_explosions(
+    mut commands: Commands,
+    mut explosion_events: EventReader<ProjectileExplosionEvent>,
     server: Res<AssetServer>,
+) {
+    for event in explosion_events.read() {
+        spawn_firework(&mut commands, event.position, &server);
+    }
+}
+
+fn spawn_firework(
+    cmd: &mut Commands,
+    // mut materials: ResMut<Assets<SpriteParticle2dMaterial>>,
+    position: Vec3,
+    server: &Res<AssetServer>,
 ) {
     // // minimal setup
     // // white quads with a default effect
@@ -38,6 +42,7 @@ fn setup(
         // the effect components holds the baseline
         // effect asset.
         ParticleEffectHandle(server.load("shaders/test_firework.particle.ron")),
+        Transform::from_translation(position),
     ));
 
     // // now with a sprite sheet animation over lifetime

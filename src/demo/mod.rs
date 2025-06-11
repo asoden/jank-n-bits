@@ -11,6 +11,8 @@ mod launcher;
 pub mod level;
 mod movement;
 pub mod player;
+pub mod uap;
+mod uap_animation;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
@@ -20,5 +22,7 @@ pub(super) fn plugin(app: &mut App) {
         player::plugin,
         fireworks::plugin,
         launcher::plugin,
+        uap::plugin,
+        uap_animation::plugin,
     ));
 }
