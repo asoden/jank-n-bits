@@ -8,17 +8,14 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnExit(Screen::Launchpad), despawn_launcher);
     app.add_systems(
         Update,
-        (
-            // setup.run_if(in_state(Screen::Launchpad).and(run_once)),
-            (
-                launcher_rotation,
-                launcher_shooting,
-                projectile_movement,
-                cleanup_projectiles,
-            )
-                .chain()
-                .run_if(in_state(Screen::Launchpad)),
-        ),
+        ((
+            launcher_rotation,
+            launcher_shooting,
+            projectile_movement,
+            cleanup_projectiles,
+        )
+            .chain()
+            .run_if(in_state(Screen::Launchpad)),),
     );
 }
 
@@ -41,8 +38,8 @@ struct Projectile {
 }
 
 fn setup(mut commands: Commands) {
-    let launcher_width = 20.0;
-    let launcher_height = 80.0;
+    let launcher_width = 12.0;
+    let launcher_height = 48.0;
 
     commands.spawn((
         Sprite {
@@ -110,7 +107,7 @@ fn launcher_shooting(
             commands.spawn((
                 Sprite {
                     color: Color::srgb(1.0, 0.5, 0.0),
-                    custom_size: Some(Vec2::new(16.0, 16.0)),
+                    custom_size: Some(Vec2::new(12.0, 12.0)),
                     ..default()
                 },
                 Transform::from_translation(spawn_position),

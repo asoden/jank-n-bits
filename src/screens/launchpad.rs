@@ -2,7 +2,13 @@
 
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
-use crate::{Pause, menus::Menu, screens::Screen, theme::widget};
+use crate::{
+    Pause,
+    demo::uap::{UapAssets, uap},
+    menus::Menu,
+    screens::Screen,
+    theme::widget,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Launchpad), spawn_launchpad);
@@ -30,11 +36,18 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_launchpad(mut commands: Commands) {
+fn spawn_launchpad(
+    mut commands: Commands,
+    uap_assets: Res<UapAssets>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+) {
     commands.spawn((
         widget::ui_root("Launchpad Menu"),
         StateScoped(Screen::Launchpad),
-        children![widget::button("Back to workshop", workshop_return),],
+        children![
+            widget::button("Back to workshop", workshop_return),
+            uap(400.0, &uap_assets, &mut texture_atlas_layouts),
+        ],
     ));
 }
 
