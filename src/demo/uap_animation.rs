@@ -76,7 +76,7 @@ impl UapAnimation {
     /// The number of idle frames.
     const IDLE_FRAMES: usize = 4;
     /// The duration of each idle frame.
-    const IDLE_INTERVAL: Duration = Duration::from_millis(500);
+    const IDLE_INTERVAL: Duration = Duration::from_millis(100);
     /// The number of Flying frames.
     const FLYING_FRAMES: usize = 1;
     /// The duration of each walking frame.

@@ -42,13 +42,13 @@ fn spawn_launchpad(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     commands.spawn((
-        widget::ui_root("Launchpad Menu"),
+        Transform::default(),
+        Visibility::default(),
         StateScoped(Screen::Launchpad),
-        children![
-            widget::button("Back to workshop", workshop_return),
-            uap(400.0, &uap_assets, &mut texture_atlas_layouts),
-        ],
+        children![uap(400.0, &uap_assets, &mut texture_atlas_layouts),],
     ));
+
+    commands.spawn(widget::button("Back to workshop", workshop_return));
 }
 
 fn workshop_return(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
