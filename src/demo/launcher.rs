@@ -1,16 +1,26 @@
 use bevy::prelude::*;
 
-use crate::screens::Screen;
+use crate::{asset_tracking::LoadResource, screens::Screen};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_event::<ProjectileExplosionEvent>();
-    app.add_systems(OnEnter(Screen::Launchpad), setup);
+
+    app.register_type::<Launcher>();
+    app.register_type::<LauncherCrank>();
+
+    app.register_type::<LauncherAssets>();
+    app.register_type::<LauncherCrankAssets>();
+
+    app.load_resource::<LauncherAssets>();
+    app.load_resource::<LauncherCrankAssets>();
+
     app.add_systems(OnExit(Screen::Launchpad), despawn_launcher);
     app.add_systems(
         Update,
         ((
             launcher_rotation,
             launcher_shooting,
+            launcher_crank_rotation,
             projectile_movement,
             cleanup_projectiles,
         )
@@ -24,11 +34,18 @@ pub struct ProjectileExplosionEvent {
     pub position: Vec3,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[reflect(Component)]
 struct Launcher {
-    rotation_speed: f32,
-    projectile_speed: f32,
-    height: f32,
+    rotation_speed: i32,
+    projectile_speed: i32,
+    height: i32,
+}
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[reflect(Component)]
+struct LauncherCrank {
+    rotation_speed: i32,
 }
 
 #[derive(Component)]
@@ -37,24 +54,53 @@ struct Projectile {
     distance: f32,
 }
 
-fn setup(mut commands: Commands) {
-    let launcher_width = 12.0;
-    let launcher_height = 48.0;
+pub fn launcher(
+    launcher_assets: &LauncherAssets,
+    texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
+) -> impl Bundle {
+    let launcher_height = 40;
 
-    commands.spawn((
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(12, 48), 1, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+    (
         Sprite {
-            color: Color::srgb(0.3, 0.7, 0.3),
-            custom_size: Some(Vec2::new(launcher_width, launcher_height)),
-            anchor: bevy::sprite::Anchor::BottomCenter,
+            image: launcher_assets.launcher.clone(),
+            texture_atlas: Some(TextureAtlas {
+                layout: texture_atlas_layout,
+                index: 1,
+            }),
+            anchor: bevy::sprite::Anchor::Custom(Vec2::new(0.0, -0.35)),
             ..default()
         },
-        Transform::from_translation(Vec3::new(0.0, -300.0, 0.0)),
+        Transform::from_translation(Vec3::new(0.0, -450.0, 0.0)),
         Launcher {
-            rotation_speed: 2.0,
-            projectile_speed: 500.0,
+            rotation_speed: 2,
+            projectile_speed: 500,
             height: launcher_height,
         },
-    ));
+    )
+}
+
+pub fn launcher_crank(
+    launcher_crank_assets: &LauncherCrankAssets,
+    texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
+) -> impl Bundle {
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(16, 16), 1, 1, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
+    (
+        Sprite {
+            image: launcher_crank_assets.launcher_crank.clone(),
+            texture_atlas: Some(TextureAtlas {
+                layout: texture_atlas_layout,
+                index: 1,
+            }),
+            ..default()
+        },
+        Transform::from_translation(Vec3::new(0.0, -450.0, 1.0)),
+        LauncherCrank { rotation_speed: 6 },
+    )
 }
 
 fn launcher_rotation(
@@ -77,7 +123,8 @@ fn launcher_rotation(
 
         // Apply rotation
         if rotation_direction != 0.0 {
-            let rotation_amount = rotation_direction * launcher.rotation_speed * time.delta_secs();
+            let rotation_amount =
+                rotation_direction * launcher.rotation_speed as f32 * time.delta_secs();
             transform.rotate_z(rotation_amount);
 
             // Clamp rotation to reasonable bounds
@@ -86,6 +133,41 @@ fn launcher_rotation(
                 transform.rotation = Quat::from_rotation_z(1.2);
             } else if current_rotation < -1.2 {
                 transform.rotation = Quat::from_rotation_z(-1.2);
+            }
+        }
+    }
+}
+
+fn launcher_crank_rotation(
+    time: Res<Time>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(&mut Transform, &LauncherCrank)>,
+) {
+    for (mut transform, launcher_crank) in query.iter_mut() {
+        let mut rotation_direction = 0.0;
+
+        // Check for right rotation; rotate opposite of the launcher
+        if keyboard_input.pressed(KeyCode::KeyA) || keyboard_input.pressed(KeyCode::ArrowLeft) {
+            rotation_direction -= 1.0;
+        }
+
+        // Check for left rotation; rotate opposite of the launcher
+        if keyboard_input.pressed(KeyCode::KeyD) || keyboard_input.pressed(KeyCode::ArrowRight) {
+            rotation_direction += 1.0;
+        }
+
+        // Apply rotation
+        if rotation_direction != 0.0 {
+            let rotation_amount =
+                rotation_direction * launcher_crank.rotation_speed as f32 * time.delta_secs();
+            transform.rotate_z(rotation_amount);
+
+            // Ideally only rotate the crank while the launcher is rotating
+            let current_rotation = transform.rotation.to_euler(EulerRot::ZYX).0;
+            if current_rotation > 3.6 {
+                transform.rotation = Quat::from_rotation_z(3.6);
+            } else if current_rotation < -3.6 {
+                transform.rotation = Quat::from_rotation_z(-3.6);
             }
         }
     }
@@ -101,7 +183,7 @@ fn launcher_shooting(
             let rotation = launcher_transform.rotation;
             let direction = rotation * Vec3::Y;
             let direction_2d = Vec2::new(direction.x, direction.y).normalize();
-            let spawn_offset = direction * launcher.height;
+            let spawn_offset = direction * launcher.height as f32;
             let spawn_position = launcher_transform.translation + spawn_offset;
 
             commands.spawn((
@@ -112,7 +194,7 @@ fn launcher_shooting(
                 },
                 Transform::from_translation(spawn_position),
                 Projectile {
-                    velocity: direction_2d * launcher.projectile_speed,
+                    velocity: direction_2d * launcher.projectile_speed as f32,
                     distance: 0.,
                 },
             ));
@@ -140,8 +222,8 @@ fn cleanup_projectiles(
     query: Query<(Entity, &Transform, &Projectile)>,
 ) {
     for (entity, transform, projectile) in query.iter() {
-        let should_despawn = projectile.distance > 700.0;
-        let should_explode = projectile.distance > 500.0;
+        let should_despawn = projectile.distance > 1000.0;
+        let should_explode = projectile.distance > 700.0;
 
         if should_despawn || should_explode {
             if should_explode {
@@ -157,5 +239,37 @@ fn cleanup_projectiles(
 fn despawn_launcher(mut commands: Commands, query: Query<Entity, With<Launcher>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn();
+    }
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct LauncherAssets {
+    #[dependency]
+    launcher: Handle<Image>,
+}
+
+impl FromWorld for LauncherAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            launcher: assets.load("images/launcher.png"),
+        }
+    }
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct LauncherCrankAssets {
+    #[dependency]
+    launcher_crank: Handle<Image>,
+}
+
+impl FromWorld for LauncherCrankAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            launcher_crank: assets.load("images/launcher_crank.png"),
+        }
     }
 }
