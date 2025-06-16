@@ -18,7 +18,7 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        record_uap_directional_input
+        uap_movement
             .in_set(AppSystems::RecordInput)
             .in_set(PausableSystems),
     );
@@ -31,12 +31,12 @@ pub fn uap(
 ) -> impl Bundle {
     // A texture atlas is a way to split a single image into a grid of related images.
     // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 32), 4, 1, None, None); //Some(UVec2::splat(1)), None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 32), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let uap_animation = UapAnimation::new();
     (
         Name::new("UAP"),
-        Uap,
+        Uap { ..default() },
         Sprite {
             image: uap_assets.uap.clone(),
             texture_atlas: Some(TextureAtlas {
@@ -55,36 +55,21 @@ pub fn uap(
     )
 }
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Reflect)]
 #[reflect(Component)]
-struct Uap;
+struct Uap {
+    speed: f32,
+    direction: f32,
+    margin: f32,
+}
 
-fn record_uap_directional_input(
-    input: Res<ButtonInput<KeyCode>>,
-    mut controller_query: Query<&mut MovementController, With<Uap>>,
-) {
-    // Collect directional input.
-    let mut intent = Vec2::ZERO;
-    if input.pressed(KeyCode::ArrowUp) {
-        intent.y += 1.0;
-    }
-    if input.pressed(KeyCode::ArrowDown) {
-        intent.y -= 1.0;
-    }
-    if input.pressed(KeyCode::ArrowLeft) {
-        intent.x -= 1.0;
-    }
-    if input.pressed(KeyCode::ArrowRight) {
-        intent.x += 1.0;
-    }
-
-    // Normalize intent so that diagonal movement is the same speed as horizontal / vertical.
-    // This should be omitted if the input comes from an analog stick instead.
-    let intent = intent.normalize_or_zero();
-
-    // Apply movement intent to controllers.
-    for mut controller in &mut controller_query {
-        controller.intent = intent;
+impl Default for Uap {
+    fn default() -> Self {
+        Self {
+            speed: 200.0,
+            direction: 1.0,
+            margin: 50.0,
+        }
     }
 }
 
@@ -100,6 +85,33 @@ impl FromWorld for UapAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             uap: assets.load("images/uap.png"),
+        }
+    }
+}
+
+fn uap_movement(
+    time: Res<Time>,
+    windows: Query<&Window>,
+    mut query: Query<(&mut Transform, &mut Uap)>,
+) {
+    let Ok(window) = windows.single() else {
+        return;
+    };
+    let half_width = window.width() / 2.0;
+
+    for (mut transform, mut uap) in query.iter_mut() {
+        let left_bound = -half_width + uap.margin;
+        let right_bound = half_width - uap.margin;
+        let movement = uap.speed * uap.direction * time.delta_secs();
+
+        transform.translation.x += movement;
+
+        if transform.translation.x >= right_bound && uap.direction > 0.0 {
+            uap.direction = -1.0;
+            transform.translation.x = right_bound;
+        } else if transform.translation.x <= left_bound && uap.direction < 0.0 {
+            uap.direction = 1.0;
+            transform.translation.x = left_bound;
         }
     }
 }

@@ -7,7 +7,7 @@ use bevy::prelude::*;
 
 mod animation;
 mod fireworks;
-mod launcher;
+pub mod launcher;
 pub mod level;
 mod movement;
 pub mod player;
@@ -17,11 +17,11 @@ mod uap_animation;
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((
         animation::plugin,
+        launcher::plugin,
         level::plugin,
         movement::plugin,
         player::plugin,
         fireworks::plugin,
-        launcher::plugin,
         uap::plugin,
         uap_animation::plugin,
     ));

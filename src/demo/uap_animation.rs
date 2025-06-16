@@ -21,15 +21,8 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn update_animation_movement(
-    mut uap_query: Query<(&MovementController, &mut Sprite, &mut UapAnimation)>,
-) {
-    for (controller, mut sprite, mut animation) in &mut uap_query {
-        let dx = controller.intent.x;
-        if dx != 0.0 {
-            sprite.flip_x = dx < 0.0;
-        }
-
+fn update_animation_movement(mut uap_query: Query<(&MovementController, &mut UapAnimation)>) {
+    for (controller, mut animation) in &mut uap_query {
         let animation_state = if controller.intent == Vec2::ZERO {
             UapAnimationState::Idling
         } else {
@@ -78,9 +71,9 @@ impl UapAnimation {
     /// The duration of each idle frame.
     const IDLE_INTERVAL: Duration = Duration::from_millis(100);
     /// The number of Flying frames.
-    const FLYING_FRAMES: usize = 1;
+    const FLYING_FRAMES: usize = 4;
     /// The duration of each walking frame.
-    const FLYING_INTERVAL: Duration = Duration::from_millis(50);
+    const FLYING_INTERVAL: Duration = Duration::from_millis(200);
 
     fn idling() -> Self {
         Self {

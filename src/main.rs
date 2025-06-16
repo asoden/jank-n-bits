@@ -12,7 +12,7 @@ mod menus;
 mod screens;
 mod theme;
 
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, prelude::*, window::WindowMode};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -36,6 +36,7 @@ impl Plugin for AppPlugin {
                     primary_window: Window {
                         title: "Jank N Bits".to_string(),
                         fit_canvas_to_parent: true,
+                        mode: WindowMode::Windowed,
                         ..default()
                     }
                     .into(),
