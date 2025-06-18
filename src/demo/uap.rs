@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_enoki::prelude::*;
 
 use crate::{
     AppSystems, PausableSystems,
@@ -10,6 +11,8 @@ use crate::{
 };
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_event::<DestroyUapEvent>();
+
     app.register_type::<Uap>();
 
     app.register_type::<UapAssets>();
@@ -18,10 +21,16 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        uap_movement
+        (uap_movement, handle_destroy_events)
             .in_set(AppSystems::RecordInput)
             .in_set(PausableSystems),
     );
+}
+
+#[derive(Event)]
+pub struct DestroyUapEvent {
+    entity: Entity,
+    transform: Transform,
 }
 
 pub fn uap(
@@ -57,10 +66,30 @@ pub fn uap(
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Reflect)]
 #[reflect(Component)]
-struct Uap {
+pub struct Uap {
     speed: f32,
     direction: f32,
     margin: f32,
+    health: f32,
+}
+
+impl Uap {
+    pub fn take_damage(
+        &mut self,
+        damage: f32,
+        entity: Entity,
+        transform: &Transform,
+        destroy_events: &mut EventWriter<DestroyUapEvent>,
+    ) {
+        self.health -= damage;
+
+        if self.health <= 0.0 {
+            destroy_events.write(DestroyUapEvent {
+                entity,
+                transform: *transform,
+            });
+        }
+    }
 }
 
 impl Default for Uap {
@@ -69,6 +98,7 @@ impl Default for Uap {
             speed: 200.0,
             direction: 1.0,
             margin: 50.0,
+            health: 100.0,
         }
     }
 }
@@ -113,5 +143,29 @@ fn uap_movement(
             uap.direction = 1.0;
             transform.translation.x = left_bound;
         }
+    }
+}
+
+fn handle_destroy_events(
+    mut commands: Commands,
+    mut destroy_events: EventReader<DestroyUapEvent>,
+    mut materials: ResMut<Assets<SpriteParticle2dMaterial>>,
+    server: Res<AssetServer>,
+) {
+    for event in destroy_events.read() {
+        let sprite_material = materials.add(SpriteParticle2dMaterial::new(
+            server.load("images/FreePixelFood/Sprite/Food/Pickle.png"),
+            1,
+            1,
+        ));
+
+        commands.spawn((
+            ParticleSpawner(sprite_material),
+            OneShot::Despawn,
+            ParticleEffectHandle(server.load("shaders/uap_explosion.ron")),
+            Transform::from_translation(event.transform.translation),
+        ));
+
+        commands.entity(event.entity).despawn();
     }
 }
