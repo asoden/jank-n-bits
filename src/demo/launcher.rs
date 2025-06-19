@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{asset_tracking::LoadResource, screens::Screen};
+use crate::{
+    asset_tracking::LoadResource,
+    demo::uap::{DestroyUapEvent, Uap},
+    screens::Screen,
+};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_event::<ProjectileExplosionEvent>();
@@ -22,6 +26,7 @@ pub(super) fn plugin(app: &mut App) {
             launcher_shooting,
             launcher_crank_rotation,
             projectile_movement,
+            projectile_collision,
             cleanup_projectiles,
         )
             .chain()
@@ -52,6 +57,7 @@ struct LauncherCrank {
 struct Projectile {
     velocity: Vec2,
     distance: f32,
+    damage: f32,
 }
 
 pub fn launcher(
@@ -196,6 +202,7 @@ fn launcher_shooting(
                 Projectile {
                     velocity: direction_2d * launcher.projectile_speed as f32,
                     distance: 0.,
+                    damage: 20.0,
                 },
             ));
         }
@@ -216,21 +223,60 @@ fn projectile_movement(time: Res<Time>, mut query: Query<(&mut Transform, &mut P
     }
 }
 
+fn projectile_collision(
+    mut commands: Commands,
+    mut explosion_events: EventWriter<ProjectileExplosionEvent>,
+    mut destroy_uap_events: EventWriter<DestroyUapEvent>,
+    projectiles: Query<(Entity, &Transform, &Projectile, &Sprite)>,
+    mut uaps: Query<(Entity, &Transform, &mut Uap, &Sprite)>,
+) {
+    for (projectile_entity, projectile_transform, projectile, projectile_sprite) in
+        projectiles.iter()
+    {
+        for (uap_entity, uap_transform, mut uap, uap_sprite) in uaps.iter_mut() {
+            let projectile_size = projectile_sprite
+                .custom_size
+                .unwrap_or(Vec2::new(12.0, 12.0));
+            let uap_size = uap_sprite.custom_size.unwrap_or(Vec2::new(56.0, 24.0));
+            let projectile_position = projectile_transform.translation.xy();
+            let uap_position = uap_transform.translation.xy();
+            let projectile_half = projectile_size / 2.0;
+            let uap_half = uap_size / 2.0;
+            let x_overlap =
+                (projectile_position.x - uap_position.x).abs() < (projectile_half.x + uap_half.x);
+            let y_overlap =
+                (projectile_position.y - uap_position.y).abs() < (projectile_half.y + uap_half.y);
+
+            if x_overlap && y_overlap {
+                explosion_events.write(ProjectileExplosionEvent {
+                    position: projectile_transform.translation,
+                });
+                uap.take_damage(
+                    projectile.damage,
+                    uap_entity,
+                    uap_transform,
+                    &mut destroy_uap_events,
+                );
+                commands.entity(projectile_entity).despawn();
+
+                break;
+            }
+        }
+    }
+}
+
 fn cleanup_projectiles(
     mut commands: Commands,
     mut explosion_events: EventWriter<ProjectileExplosionEvent>,
     query: Query<(Entity, &Transform, &Projectile)>,
 ) {
     for (entity, transform, projectile) in query.iter() {
-        let should_despawn = projectile.distance > 1000.0;
-        let should_explode = projectile.distance > 700.0;
+        let auto_detonate = projectile.distance > 1000.0;
 
-        if should_despawn || should_explode {
-            if should_explode {
-                explosion_events.write(ProjectileExplosionEvent {
-                    position: transform.translation,
-                });
-            }
+        if auto_detonate {
+            explosion_events.write(ProjectileExplosionEvent {
+                position: transform.translation,
+            });
             commands.entity(entity).despawn();
         }
     }
