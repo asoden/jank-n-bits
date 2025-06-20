@@ -4,7 +4,7 @@ use bevy_enoki::prelude::*;
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
-    demo::{
+    app::{
         movement::{MovementController, ScreenWrap},
         uap_animation::UapAnimation,
     },

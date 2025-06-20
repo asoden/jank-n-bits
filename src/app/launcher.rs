@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     asset_tracking::LoadResource,
-    demo::uap::{DestroyUapEvent, Uap},
+    app::uap::{DestroyUapEvent, Uap},
     screens::Screen,
 };
 

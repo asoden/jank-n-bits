@@ -4,7 +4,7 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*}
 
 use crate::{
     Pause,
-    demo::{
+    app::{
         launcher::{LauncherAssets, LauncherCrankAssets, launcher, launcher_crank},
         uap::{UapAssets, uap},
     },
