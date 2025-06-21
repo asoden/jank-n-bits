@@ -41,7 +41,7 @@ pub(super) fn plugin(app: &mut App) {
 
 fn spawn_launchpad(
     mut commands: Commands,
-    uap_assets: Res<UapAssets>,
+    // uap_assets: Res<UapAssets>,
     launcher_assets: Res<LauncherAssets>,
     launcher_crank_assets: Res<LauncherCrankAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -51,7 +51,7 @@ fn spawn_launchpad(
         Visibility::default(),
         StateScoped(Screen::Launchpad),
         children![
-            uap(400.0, &uap_assets, &mut texture_atlas_layouts),
+            // uap(400.0, &uap_assets, &mut texture_atlas_layouts),
             launcher(&launcher_assets, &mut texture_atlas_layouts),
             launcher_crank(&launcher_crank_assets, &mut texture_atlas_layouts),
         ],
