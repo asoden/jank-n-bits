@@ -2,9 +2,13 @@ use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
 use crate::{
+    PausableSystems,
     app::{
-        movement::{MovementController, ScreenWrap}, score::ScoreEvent, uap_animation::UapAnimation
-    }, asset_tracking::LoadResource, PausableSystems
+        movement::{MovementController, ScreenWrap},
+        score::ScoreEvent,
+        uap_animation::UapAnimation,
+    },
+    asset_tracking::LoadResource,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -87,9 +91,7 @@ impl Uap {
                 entity,
                 transform: *transform,
             });
-            score_events.write(ScoreEvent {
-                score_to_add: 1,
-            });
+            score_events.write(ScoreEvent { score_to_add: 1 });
         }
     }
 }

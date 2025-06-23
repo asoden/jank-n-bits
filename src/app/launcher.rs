@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    app::{score::ScoreEvent, uap::{DestroyUapEvent, Uap}},
+    app::{
+        score::ScoreEvent,
+        uap::{DestroyUapEvent, Uap},
+    },
     asset_tracking::LoadResource,
     screens::Screen,
 };
