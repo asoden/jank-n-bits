@@ -2,12 +2,13 @@ use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
 use crate::{
-    AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
-    demo::{
+    PausableSystems,
+    app::{
         movement::{MovementController, ScreenWrap},
+        score::ScoreEvent,
         uap_animation::UapAnimation,
     },
+    asset_tracking::LoadResource,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -21,9 +22,7 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        (uap_movement, handle_destroy_events)
-            .in_set(AppSystems::RecordInput)
-            .in_set(PausableSystems),
+        (uap_movement, handle_destroy_events).in_set(PausableSystems),
     );
 }
 
@@ -43,6 +42,8 @@ pub fn uap(
     let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 32), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let uap_animation = UapAnimation::new();
+    let x_spawn = rand::random::<f32>() * 400.0 - 400.0;
+    let y_spawn = rand::random::<f32>() * 600.0 - 200.0;
     (
         Name::new("UAP"),
         Uap { ..default() },
@@ -54,7 +55,8 @@ pub fn uap(
             }),
             ..default()
         },
-        Transform::from_scale(Vec2::splat(1.0).extend(1.0)),
+        Transform::from_scale(Vec2::splat(1.0).extend(1.0))
+            .with_translation(Vec3::new(x_spawn, y_spawn, 0.0)),
         MovementController {
             max_speed,
             ..default()
@@ -80,6 +82,7 @@ impl Uap {
         entity: Entity,
         transform: &Transform,
         destroy_events: &mut EventWriter<DestroyUapEvent>,
+        score_events: &mut EventWriter<ScoreEvent>,
     ) {
         self.health -= damage;
 
@@ -88,6 +91,7 @@ impl Uap {
                 entity,
                 transform: *transform,
             });
+            score_events.write(ScoreEvent { score_to_add: 1 });
         }
     }
 }
@@ -96,7 +100,7 @@ impl Default for Uap {
     fn default() -> Self {
         Self {
             speed: 200.0,
-            direction: 1.0,
+            direction: if rand::random::<bool>() { 1.0 } else { -1.0 },
             margin: 50.0,
             health: 100.0,
         }

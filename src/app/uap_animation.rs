@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use crate::{
     AppSystems, PausableSystems,
-    demo::{movement::MovementController, uap::UapAssets},
+    app::{movement::MovementController, uap::UapAssets},
 };
 
 pub(super) fn plugin(app: &mut App) {

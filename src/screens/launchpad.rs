@@ -4,10 +4,7 @@ use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*}
 
 use crate::{
     Pause,
-    demo::{
-        launcher::{LauncherAssets, LauncherCrankAssets, launcher, launcher_crank},
-        uap::{UapAssets, uap},
-    },
+    app::launcher::{LauncherAssets, LauncherCrankAssets, launcher, launcher_crank},
     menus::Menu,
     screens::Screen,
     theme::widget,
@@ -41,7 +38,6 @@ pub(super) fn plugin(app: &mut App) {
 
 fn spawn_launchpad(
     mut commands: Commands,
-    uap_assets: Res<UapAssets>,
     launcher_assets: Res<LauncherAssets>,
     launcher_crank_assets: Res<LauncherCrankAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -51,7 +47,6 @@ fn spawn_launchpad(
         Visibility::default(),
         StateScoped(Screen::Launchpad),
         children![
-            uap(400.0, &uap_assets, &mut texture_atlas_layouts),
             launcher(&launcher_assets, &mut texture_atlas_layouts),
             launcher_crank(&launcher_crank_assets, &mut texture_atlas_layouts),
         ],

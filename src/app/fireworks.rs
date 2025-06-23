@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
-use crate::demo::launcher::ProjectileExplosionEvent;
+use crate::app::launcher::ProjectileExplosionEvent;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins(EnokiPlugin);
