@@ -1,6 +1,10 @@
 use bevy::prelude::*;
 
-use crate::{app::uap::{uap, Uap, UapAssets}, screens::Screen, PausableSystems};
+use crate::{
+    PausableSystems,
+    app::uap::{Uap, UapAssets, uap},
+    screens::Screen,
+};
 
 const MAX_UAPS: usize = 10;
 
@@ -10,12 +14,7 @@ pub(super) fn plugin(app: &mut App) {
     });
     app.add_systems(
         Update,
-        (
-            (spawn_uap)
-                .chain()
-                .run_if(in_state(Screen::Launchpad))
-        )
-            .in_set(PausableSystems),
+        ((spawn_uap).chain().run_if(in_state(Screen::Launchpad))).in_set(PausableSystems),
     );
 }
 
@@ -36,15 +35,17 @@ fn spawn_uap(
 
     if spawn_timer.timer.just_finished() && uap_query.iter().len() < MAX_UAPS {
         // TODO: logic to spawn Uap
-        commands.spawn((
-            Transform::default(),
-            Visibility::default(),
-            StateScoped(Screen::Launchpad),
-            // children![
-            //     uap(400.0, &uap_assets, &mut texture_atlas_layouts),
-            // ]
-        )).with_children(|parent| {
-            parent.spawn(uap(400.0, &uap_assets, &mut texture_atlas_layouts));
-        });
+        commands
+            .spawn((
+                Transform::default(),
+                Visibility::default(),
+                StateScoped(Screen::Launchpad),
+                // children![
+                //     uap(400.0, &uap_assets, &mut texture_atlas_layouts),
+                // ]
+            ))
+            .with_children(|parent| {
+                parent.spawn(uap(400.0, &uap_assets, &mut texture_atlas_layouts));
+            });
     }
 }

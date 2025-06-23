@@ -3,9 +3,9 @@
 use bevy::prelude::*;
 
 use crate::{
+    app::player::{PlayerAssets, player},
     asset_tracking::LoadResource,
     audio::music,
-    app::player::{PlayerAssets, player},
     screens::Screen,
 };
 

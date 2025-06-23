@@ -2,12 +2,9 @@ use bevy::prelude::*;
 use bevy_enoki::prelude::*;
 
 use crate::{
-    PausableSystems,
-    asset_tracking::LoadResource,
     app::{
-        movement::{MovementController, ScreenWrap},
-        uap_animation::UapAnimation,
-    },
+        movement::{MovementController, ScreenWrap}, score::ScoreEvent, uap_animation::UapAnimation
+    }, asset_tracking::LoadResource, PausableSystems
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -21,8 +18,7 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        (uap_movement, handle_destroy_events)
-            .in_set(PausableSystems),
+        (uap_movement, handle_destroy_events).in_set(PausableSystems),
     );
 }
 
@@ -55,7 +51,8 @@ pub fn uap(
             }),
             ..default()
         },
-        Transform::from_scale(Vec2::splat(1.0).extend(1.0)).with_translation(Vec3::new(x_spawn, y_spawn, 0.0)),
+        Transform::from_scale(Vec2::splat(1.0).extend(1.0))
+            .with_translation(Vec3::new(x_spawn, y_spawn, 0.0)),
         MovementController {
             max_speed,
             ..default()
@@ -81,6 +78,7 @@ impl Uap {
         entity: Entity,
         transform: &Transform,
         destroy_events: &mut EventWriter<DestroyUapEvent>,
+        score_events: &mut EventWriter<ScoreEvent>,
     ) {
         self.health -= damage;
 
@@ -88,6 +86,9 @@ impl Uap {
             destroy_events.write(DestroyUapEvent {
                 entity,
                 transform: *transform,
+            });
+            score_events.write(ScoreEvent {
+                score_to_add: 1,
             });
         }
     }

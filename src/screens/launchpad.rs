@@ -3,14 +3,7 @@
 use bevy::{input::common_conditions::input_just_pressed, prelude::*, ui::Val::*};
 
 use crate::{
-    Pause,
-    app::{
-        launcher::{LauncherAssets, LauncherCrankAssets, launcher, launcher_crank},
-        uap::{UapAssets, uap},
-    },
-    menus::Menu,
-    screens::Screen,
-    theme::widget,
+    app::{launcher::{launcher, launcher_crank, LauncherAssets, LauncherCrankAssets}, score::scoreboard}, menus::Menu, screens::Screen, theme::widget, Pause
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -54,6 +47,7 @@ fn spawn_launchpad(
             // uap(400.0, &uap_assets, &mut texture_atlas_layouts),
             launcher(&launcher_assets, &mut texture_atlas_layouts),
             launcher_crank(&launcher_crank_assets, &mut texture_atlas_layouts),
+            scoreboard(),
         ],
     ));
 

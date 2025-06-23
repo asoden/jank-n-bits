@@ -11,6 +11,7 @@ pub mod launcher;
 pub mod level;
 mod movement;
 pub mod player;
+pub mod score;
 pub mod uap;
 mod uap_animation;
 mod uap_spawner;
@@ -26,5 +27,6 @@ pub(super) fn plugin(app: &mut App) {
         uap::plugin,
         uap_animation::plugin,
         uap_spawner::plugin,
+        score::plugin,
     ));
 }

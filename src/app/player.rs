@@ -7,11 +7,11 @@ use bevy::{
 
 use crate::{
     AppSystems, PausableSystems,
-    asset_tracking::LoadResource,
     app::{
         animation::PlayerAnimation,
         movement::{MovementController, ScreenWrap},
     },
+    asset_tracking::LoadResource,
 };
 
 pub(super) fn plugin(app: &mut App) {

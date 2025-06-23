@@ -10,8 +10,8 @@ use std::time::Duration;
 
 use crate::{
     AppSystems, PausableSystems,
-    audio::sound_effect,
     app::{movement::MovementController, player::PlayerAssets},
+    audio::sound_effect,
 };
 
 pub(super) fn plugin(app: &mut App) {

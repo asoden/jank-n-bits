@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
+    app::{score::ScoreEvent, uap::{DestroyUapEvent, Uap}},
     asset_tracking::LoadResource,
-    app::uap::{DestroyUapEvent, Uap},
     screens::Screen,
 };
 
@@ -227,6 +227,7 @@ fn projectile_collision(
     mut commands: Commands,
     mut explosion_events: EventWriter<ProjectileExplosionEvent>,
     mut destroy_uap_events: EventWriter<DestroyUapEvent>,
+    mut score_events: EventWriter<ScoreEvent>,
     projectiles: Query<(Entity, &Transform, &Projectile, &Sprite)>,
     mut uaps: Query<(Entity, &Transform, &mut Uap, &Sprite)>,
 ) {
@@ -256,6 +257,7 @@ fn projectile_collision(
                     uap_entity,
                     uap_transform,
                     &mut destroy_uap_events,
+                    &mut score_events,
                 );
                 commands.entity(projectile_entity).despawn();
 
