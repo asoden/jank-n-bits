@@ -54,7 +54,7 @@ fn spawn_launchpad(
 
     commands.spawn((
         widget::button("Back to workshop", workshop_return),
-        StateScoped(Screen::Workshop),
+        StateScoped(Screen::Launchpad),
     ));
 }
 
