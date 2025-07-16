@@ -52,7 +52,10 @@ fn spawn_launchpad(
         ],
     ));
 
-    commands.spawn(widget::button("Back to workshop", workshop_return));
+    commands.spawn((
+        widget::button("Back to workshop", workshop_return),
+        StateScoped(Screen::Workshop),
+    ));
 }
 
 fn workshop_return(_: Trigger<Pointer<Click>>, mut next_screen: ResMut<NextState<Screen>>) {
