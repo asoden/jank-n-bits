@@ -39,8 +39,7 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-fn spawn_workshop(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let workspace_sidebar = asset_server.load("images/workspace-panel.png");
+fn create_menu_panel(asset_server: &Res<AssetServer>) -> impl Bundle {
     let workspace_texture = asset_server.load_with_settings(
         "images/workspace.png",
         |settings: &mut ImageLoaderSettings| {
@@ -56,6 +55,46 @@ fn spawn_workshop(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     };
 
+    (
+        ImageNode {
+            image: workspace_texture.clone(),
+            image_mode: NodeImageMode::Sliced(slicer.clone()),
+            ..default()
+        },
+        Node {
+            width: Val::Px(64. * WORKSHOP_COLUMNS),
+            height: Val::Px(64. * WORKSHOP_ROWS),
+            ..default()
+        },
+        StateScoped(Screen::Workshop),
+    )
+}
+
+fn create_menu_side_panel(asset_server: &Res<AssetServer>) -> impl Bundle {
+    let workspace_sidebar = asset_server.load("images/workspace-panel.png");
+
+    let slicer = TextureSlicer {
+        border: BorderRect::all(WORKSHOP_TILE_WIDTH),
+        center_scale_mode: SliceScaleMode::Tile { stretch_value: 1. },
+        sides_scale_mode: SliceScaleMode::Tile { stretch_value: 1. },
+        ..default()
+    };
+    (
+        ImageNode {
+            image: workspace_sidebar.clone(),
+            image_mode: NodeImageMode::Sliced(slicer.clone()),
+            ..default()
+        },
+        Node {
+            width: Val::Px(128.),
+            height: Val::Px(64. * WORKSHOP_ROWS),
+            ..default()
+        },
+        StateScoped(Screen::Workshop),
+    )
+}
+
+fn spawn_workshop(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             Node {
@@ -72,32 +111,8 @@ fn spawn_workshop(mut commands: Commands, asset_server: Res<AssetServer>) {
             Pickable::IGNORE,
         ))
         .with_children(|parent| {
-            parent.spawn((
-                ImageNode {
-                    image: workspace_sidebar.clone(),
-                    image_mode: NodeImageMode::Sliced(slicer.clone()),
-                    ..default()
-                },
-                Node {
-                    width: Val::Px(128.),
-                    height: Val::Px(64. * WORKSHOP_ROWS),
-                    ..default()
-                },
-                StateScoped(Screen::Workshop),
-            ));
-            parent.spawn((
-                ImageNode {
-                    image: workspace_texture.clone(),
-                    image_mode: NodeImageMode::Sliced(slicer.clone()),
-                    ..default()
-                },
-                Node {
-                    width: Val::Px(64. * WORKSHOP_COLUMNS),
-                    height: Val::Px(64. * WORKSHOP_ROWS),
-                    ..default()
-                },
-                StateScoped(Screen::Workshop),
-            ));
+            parent.spawn(create_menu_side_panel(&asset_server));
+            parent.spawn(create_menu_panel(&asset_server));
         });
 
     commands.spawn((
