@@ -16,9 +16,11 @@ pub(super) fn plugin(app: &mut App) {
     app.register_type::<LauncherCrank>();
 
     app.register_type::<LauncherAssets>();
+    app.register_type::<ProjectileAssets>();
     app.register_type::<LauncherCrankAssets>();
 
     app.load_resource::<LauncherAssets>();
+    app.load_resource::<ProjectileAssets>();
     app.load_resource::<LauncherCrankAssets>();
 
     app.add_systems(OnExit(Screen::Launchpad), despawn_launcher);
@@ -56,7 +58,8 @@ struct LauncherCrank {
     rotation_speed: i32,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug, Clone, Copy, PartialEq, Default, Reflect)]
+#[reflect(Component)]
 struct Projectile {
     velocity: Vec2,
     distance: f32,
@@ -184,10 +187,15 @@ fn launcher_crank_rotation(
 
 fn launcher_shooting(
     mut commands: Commands,
+    projectile_assets: Res<ProjectileAssets>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     launcher_query: Query<(&Transform, &Launcher)>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Space) {
+        let layout = TextureAtlasLayout::from_grid(UVec2::new(12, 12), 1, 1, None, None);
+        let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
         for (launcher_transform, launcher) in launcher_query.iter() {
             let rotation = launcher_transform.rotation;
             let direction = rotation * Vec3::Y;
@@ -197,11 +205,15 @@ fn launcher_shooting(
 
             commands.spawn((
                 Sprite {
-                    color: Color::srgb(1.0, 0.5, 0.0),
+                    image: projectile_assets.shell.clone(),
+                    texture_atlas: Some(TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: 1,
+                    }),
                     custom_size: Some(Vec2::new(12.0, 12.0)),
                     ..default()
                 },
-                Transform::from_translation(spawn_position),
+                Transform::from_translation(spawn_position).with_rotation(rotation),
                 Projectile {
                     velocity: direction_2d * launcher.projectile_speed as f32,
                     distance: 0.,
@@ -305,6 +317,22 @@ impl FromWorld for LauncherAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             launcher: assets.load("images/launcher.png"),
+        }
+    }
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct ProjectileAssets {
+    #[dependency]
+    shell: Handle<Image>,
+}
+
+impl FromWorld for ProjectileAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            shell: assets.load("images/shell.png"),
         }
     }
 }
