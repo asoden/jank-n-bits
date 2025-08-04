@@ -22,7 +22,7 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        (uap_movement, handle_destroy_events).in_set(PausableSystems),
+        (handle_destroy_events).in_set(PausableSystems),
     );
 }
 
